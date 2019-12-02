@@ -15,6 +15,9 @@ param Bak {APPS,1..K}; # Bandwidth
 param Stk {APPS,1..K}; # stalls_total
 param Smk {APPS,1..K}; # stalls_mem 
 
+#param InitUnf;
+#param InitSol {APPS};
+
 /* Computed params */
 # IPC alone of each app with all ways available
 param IPCa {a in APPS} = IPCk[a,K];
@@ -33,12 +36,12 @@ var S {APPS};
 var W {APPS, k in 1..K} binary;
 # Sum of Ba of each app
 var T;
-#var Smax;
-#var Smin;
+var Smax>=0;
+var Smin>=0;
 
 /*Optimization goal: minimize Unfairness*/
-minimize Unfairness:
-	sum{a in APPS} S[a];
+minimize Unfairness: Smax/Smin;
+
 
 
 /* Linear equations*/
@@ -57,11 +60,11 @@ subject to AllWaysAssigned:
 subject to AssignedWays {a in APPS}:
   1 <= sum {k in 1..K} k * W[a,k] <= K - N + 1;
 
-#subject to minS {a in APPS}:
-#  Smin <= S[a];
+subject to minS {a in APPS}:
+  Smin <= S[a];
 
-#subject to maxS {a in APPS}:
-#  Smax >= S[a];
+subject to maxS {a in APPS}:
+  Smax >= S[a];
 
 subject to all_Ba {a in APPS}:
   Ba[a] = sum {k in 1..K} Bak[a,k] * W[a,k];
